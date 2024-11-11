@@ -1,15 +1,9 @@
 #python3
 
 import time
-from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Hash import SHA256
-from Crypto.PublicKey import RSA
 from Crypto.Protocol.KDF import PBKDF2
-from Crypto.Random import get_random_bytes
 from siftprotocols.siftmtp import SiFT_MTP, SiFT_MTP_Error
-from base64 import b64encode, b64decode
-
-import os
 
 
 class SiFT_LOGIN_Error(Exception):
@@ -27,25 +21,6 @@ class SiFT_LOGIN:
         # --------- STATE ------------
         self.mtp = mtp
         self.server_users = None 
-    
-    
-        # Load the server's public key (for the client side)
-        publickeypath = os.path.join(os.path.dirname(__file__), '../keys/server_rsa_public_key.pem')
-        with open(publickeypath, 'rb') as f:
-            self.server_public_key = RSA.importKey(f.read())
-            
-        # Load the server's private key (for the server side)
-        privatekeypath = os.path.join(os.path.dirname(__file__), '../keys/server_rsa_keypair.pem')
-        with open(privatekeypath, 'rb') as f:
-            self.server_private_key = RSA.importKey(f.read(), passphrase = 'your_key')
-        
-        print("public key:", self.server_public_key)
-        print("private key:", self.server_private_key)
-        
-    
-    def set_session_key(self, session_key):
-        self.mtp.session_key = session_key
-        print("Set session key")
 
 
     # sets user passwords dictionary (to be used by the server)
@@ -121,24 +96,7 @@ class SiFT_LOGIN:
         hash_fn.update(msg_payload)
         request_hash = hash_fn.digest()
 
-        # Parse login request and extract the encrypted session key
         login_req_struct = self.parse_login_req(msg_payload)
-        encrypted_session_key = b64decode(login_req_struct['encrypted_session_key'])
-        
-        # Decrypt the session key using the server's private key
-        session_key = PKCS1_OAEP.new(self.server_private_key).decrypt(encrypted_session_key)
-        
-        # Store the session key for later message encryption/decryption
-        self.set_session_key(session_key)
-        print("Set session key")
-        self.mtp.session_key = session_key
-
-        # DEBUG 
-        if self.DEBUG:
-            print('Decrypted session key (' + str(len(session_key)) + '):')
-            print(session_key[:max(512, len(session_key))].decode('utf-8'))
-            print('------------------------------------------')
-        # DEBUG
 
         # checking username and password
         if login_req_struct['username'] in self.server_users:
@@ -175,19 +133,11 @@ class SiFT_LOGIN:
 
     # handles login process (to be used by the client)
     def handle_login_client(self, username, password):
-        
-        # Generate a random session key (AES key, 32 bytes)
-        session_key = get_random_bytes(16)
-        
-        # Encrypt the session key with the server's public key
-        encrypted_session_key = PKCS1_OAEP.new(self.server_public_key).encrypt(session_key)
-        
 
         # building a login request
         login_req_struct = {}
         login_req_struct['username'] = username
         login_req_struct['password'] = password
-        login_req_struct['encrypted_session_key'] = b64encode(encrypted_session_key).decode('utf-8')
         msg_payload = self.build_login_req(login_req_struct)
 
         # DEBUG 
