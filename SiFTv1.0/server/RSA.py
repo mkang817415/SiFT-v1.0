@@ -23,7 +23,7 @@ def keypairGeneratation():
         f.write(keypairExport)
     
     # Export public key without passphrase
-    with open(server_keys_dir + '/server_rsa_public_key.pem', 'wb') as f:
+    with open(client_keys_dir + '/server_rsa_public_key.pem', 'wb') as f:
         pubkey = keypair.publickey().export_key(format='PEM')
         f.write(pubkey)
     
