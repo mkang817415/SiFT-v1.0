@@ -18,12 +18,12 @@ def keypairGeneratation():
     keypair = RSA.generate(2048)
     
     # Export Private Key with a passphrase 
-    with open(server_keys_dir + '/server_rsa_keypair.pem', 'wb') as f:
+    with open(server_keys_dir + '/keypair.pem', 'wb') as f:
         keypairExport = keypair.export_key(format="PEM", passphrase = 'your_key')
         f.write(keypairExport)
     
     # Export public key without passphrase
-    with open(client_keys_dir + '/server_rsa_public_key.pem', 'wb') as f:
+    with open(client_keys_dir + '/public_key.pem', 'wb') as f:
         pubkey = keypair.publickey().export_key(format='PEM')
         f.write(pubkey)
     

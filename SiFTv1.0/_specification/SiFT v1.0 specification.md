@@ -83,6 +83,8 @@ The values for the message types are defined according to the following concept:
 
 The header is followed by the AES-GCM enrcrypted payload (__epd__) and the AES-GCM authentication tag (__mac__). The mac field in this version of the protocol must be 12 bytes long. 
 
+
+### Login Request -> delete this line 
 In case of login requests (i.e., message type `00 00`), the message format is somewhat different, and it is shown below:
 
 ```
@@ -141,6 +143,10 @@ All subsequent MTP messages are produced in the same way as described above for 
 - the encrypted payload and the mac fields are produced by processing the message header and the payload with AES in GCM mode using the final transfer key as the key and sqn+rnd as the nonce,
 - the message is sent and the inceremented sending sequence number is stored (as the sequence number of the last message sent).
 
+
+
+
+
 When such an MTP message is received, the receiving party 
 - verifies if the sequence number sqn in the message is larger than the last received sequence number, 
 - verifies the mac and decrypts the encrypted payload with AES in GCM mode using the final transfer key as the key and sqn+rnd as the nonce, and
@@ -148,8 +154,19 @@ When such an MTP message is received, the receiving party
 
 A message that does not pass all verifications must be silently discarded (no error message is sent in the MTP protocol) and the connection between the client and the server must be closed. Closing the connection is initiated by the receiving party that encountered the offending message.
 
+
+
+*************** NOV 13 WEDNESDAY NIGHT PROGRESS ****************
 ## SiFT v1.0 Login Protocol
-The SiFT v1.0 Login Protocol is responsible for authenticating the client and the server to each other and for setting up the final transfer key to be used by the MTP protocol to protect MTP messages. The server is authenticated implictly: it is assumed that the client knows the server's public key, and it encrypts a login request to the server using this public key. Hence, only the entity knowing the corresponding private key, i.e., supposedly the server, can decrypt and respond correctly to this login request. The client, on the other hand, authenticates itself explicitely with a username and password pair, which is sent to the server in the login request message. The server should not store client passwords in cleartext, but it should rather store password hashes, and verify the password in the incoming login request by hashing it and comparing it to the stored password hash of the user identified by the username in the login request. In addition, to prevent dictionary attacks on passwords, the server should use a secure password hashing algorithm, such as PBKDF2, scrypt, or Argon2.
+The SiFT v1.0 Login Protocol is responsible for authenticating the client and the server to each other and for setting up the final transfer key to be used by the MTP protocol to protect MTP messages. The server is authenticated implictly: 
+
+1. it is assumed that the client knows the server's public key, and it encrypts a login request to the server using this public key. 
+- Hence, only the entity knowing the corresponding private key, i.e., supposedly the server, can decrypt and respond correctly to this login request. 
+
+2. The client, on the other hand, authenticates itself explicitely with a username and password pair, which is sent to the server in the login request message. 
+
+3. The server should not store client passwords in cleartext, but it should rather store password hashes, and verify the password in the incoming login request by hashing it and comparing it to the stored password hash of the user identified by the username in the login request. 
+- In addition, to prevent dictionary attacks on passwords, the server should use a secure password hashing algorithm, such as PBKDF2, scrypt, or Argon2.
 
 ### Message exchange
 The message exchange of the Login Protocol is shown in the figure below:
@@ -198,6 +215,9 @@ where
 
 - `<request_hash>` is a hexadecimal number converted to a string, the value of which is the SHA-256 hash of the payload of the login request message converted to a byte string.
 - `<server_random>` is a hexadecimal number converted to a string, the value of which is a 16-byte freshly generated random value.
+
+
+*************** NOV 20 THURSDAY NIGHT PROGRESS ****************
 
 ### Processing
 The client should input the username and the password from the user to fill in the `<username>` and `<password>` fields of the login request, and the client must generate a 16-byte fresh random value using a cryptographic random number generator to fill in the `<client_random>` field. Then the client should obtain its current system time of the appropriate format to fill in the `<timestamp>` field, preferably right before sending out the login request message. The login request is then handed over to the MTP protocol entity of the client in order to send it to the server.

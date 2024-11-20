@@ -4,6 +4,8 @@ import time
 from Crypto.Hash import SHA256
 from Crypto.Protocol.KDF import PBKDF2
 from siftprotocols.siftmtp import SiFT_MTP, SiFT_MTP_Error
+from Crypto import Random
+
 
 
 class SiFT_LOGIN_Error(Exception):
@@ -108,6 +110,7 @@ class SiFT_LOGIN:
         # building login response
         login_res_struct = {}
         login_res_struct['request_hash'] = request_hash
+        login_res_struct['server_random'] = Random.get_random_bytes(16)
         msg_payload = self.build_login_res(login_res_struct)
 
         # DEBUG 
@@ -136,8 +139,10 @@ class SiFT_LOGIN:
 
         # building a login request
         login_req_struct = {}
+        login_req_struct['timestamp'] = time.time_ns()
         login_req_struct['username'] = username
         login_req_struct['password'] = password
+        login_req_struct['client_random'] = Random.get_random_bytes(16)
         msg_payload = self.build_login_req(login_req_struct)
 
         # DEBUG 
