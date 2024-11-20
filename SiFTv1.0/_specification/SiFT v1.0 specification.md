@@ -217,8 +217,6 @@ where
 - `<server_random>` is a hexadecimal number converted to a string, the value of which is a 16-byte freshly generated random value.
 
 
-*************** NOV 20 THURSDAY NIGHT PROGRESS ****************
-
 ### Processing
 The client should input the username and the password from the user to fill in the `<username>` and `<password>` fields of the login request, and the client must generate a 16-byte fresh random value using a cryptographic random number generator to fill in the `<client_random>` field. Then the client should obtain its current system time of the appropriate format to fill in the `<timestamp>` field, preferably right before sending out the login request message. The login request is then handed over to the MTP protocol entity of the client in order to send it to the server.
 
