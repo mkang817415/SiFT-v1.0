@@ -226,11 +226,19 @@ When the server receives the login request message, it should check the received
 
 Then the server must check the username and password received, by computing the password hash of the password and comparing it to the password hash stored by the server for the given username. It is not part of this specification to define which password hash function the server should use and how; this is left for implementations. It is recommended, however, to follow best practices in this matter, which means that a secure password hash function, such as PBKDF2, scrypt, or Argon2, should be used with appropriate streching and salting parameters.
 
+
+******* GOTTA DO ****
 If the verification of timestamp or the verification of the username and password fails, then the server must not respond to the client, but it must close the connection. Otherwise, if all verifications succeed, then the server must compute the SHA-256 hash of the payload of the received login request (converted to a byte string) to fill in the `<request-hash>` field of the login response and it must generate a 16-byte fresh random value using a cryptographic random number generator to fill in the `<server_random>` field of the login response. The login response is then handed over to the MTP protocol entity of the server in order to send it to the client.
 
 When receiving the login response, the client must verify that the request hash in the response matches the previously computed SHA-256 hash value of the payload of the login request sent to the server. If verification fails, the client must terminate the connection.
 
+****** NEED TO WORK ON*** 
 If all verifications were successful, then both the client and the server compute a 32-byte final transfer key for the MTP protocol from the concatenation of the client_random and the server_random as initial key material, and the request_hash as salt using the HKDF key derivation function with SHA-256 as the internal hash function. The derived final transfer key is passed to the MTP protocol entity such that all subsequent MTP messages must be protected by this key.
+
+initialKeyMaterial = client_random + server_random
+requestHash = HKDF Key deriv with SHA-256 as internal hash function
+
+-> derived final transfer key is passed onto the MTP protocol 
 
 ## SiFT v1.0 Commands Protocol
 The SiFT v1.0 Commands Protocol is responsible for sending the file commands of the client to the server and sending response messages to these commands. The Commands Protocol must only be used after successful login by the client to the server, and establishment of the final MTP transfer key, such that commands and their responses are protected cryptographically by MTP.

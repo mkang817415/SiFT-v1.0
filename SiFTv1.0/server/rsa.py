@@ -29,6 +29,12 @@ def keypairGeneratation():
     
     return keypair.publickey(), keypair
 
+
+
+
+#### DO NOT NEED FUNCTIONS BELOW
+
+
 # RSA Encryption
 def RSAEncryption(pubkey, plaintext):
     cipher = PKCS1_OAEP.new(pubkey)
@@ -68,25 +74,25 @@ if __name__ == '__main__':
     print("Public Key:", pubkey)
     print("Private Key:", keypair)
     
-    # Example message 
-    message = b'Hello this is a test'
+    # # Example message 
+    # message = b'Hello this is a test'
     
-    # Encryption 
-    ciphertext = RSAEncryption(pubkey, message)
-    print("Ciphertext (Base64):", ciphertext)   
+    # # Encryption 
+    # ciphertext = RSAEncryption(pubkey, message)
+    # print("Ciphertext (Base64):", ciphertext)   
     
-    # Decryption
-    plaintext = RSADecryption(keypair, ciphertext)
-    if plaintext: 
-        print("Recovered Plaintext:", plaintext)
+    # # Decryption
+    # plaintext = RSADecryption(keypair, ciphertext)
+    # if plaintext: 
+    #     print("Recovered Plaintext:", plaintext)
 
-    # Signature Generation
-    signature = RSASignatureGeneration(keypair, message)
-    print("Signature (Hex):", signature)
+    # # Signature Generation
+    # signature = RSASignatureGeneration(keypair, message)
+    # print("Signature (Hex):", signature)
 
-    # Signature Verification
-    if RSASignatureVerification(pubkey, message, signature):
-        print("Signature is valid")
-    else:
-        print("Signature is invalid")
+    # # Signature Verification
+    # if RSASignatureVerification(pubkey, message, signature):
+    #     print("Signature is valid")
+    # else:
+    #     print("Signature is invalid")
 

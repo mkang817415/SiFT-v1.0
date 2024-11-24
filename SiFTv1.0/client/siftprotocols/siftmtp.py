@@ -135,6 +135,7 @@ class SiFT_MTP:
 		if int.from_bytes(parsed_msg_hdr['sqn'], byteorder='big') > self.last_received_sqn:
 			raise SiFT_MTP_Error('Sequence number not in order')
 
+
 		# Type is login 
 		if parsed_msg_hdr['typ'] == self.type_login_res: # or parsed_msg_hdr['typ'] == self.type_login_req:
 			full_len = int.from_bytes(parsed_msg_hdr['len'], byteorder='big')
@@ -228,7 +229,7 @@ class SiFT_MTP:
 
 	# builds and sends message of a given type using the provided payload
 	def send_msg(self, msg_type, msg_payload):
-		if msg_type == self.type_login_req: #or msg_type == self.type_login_res: # Message is login
+		if msg_type == self.type_login_req: # Message is login
 
 			# build message
 			msg_size = self.size_msg_hdr + len(msg_payload) + 12 + 256 # Mac + etk
