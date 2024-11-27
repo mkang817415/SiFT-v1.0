@@ -79,7 +79,7 @@ class SiFT_MTP:
         parsed_msg_hdr, i = {}, 0
         parsed_msg_hdr['ver'], i = msg_hdr[i:i+self.size_msg_hdr_ver], i+self.size_msg_hdr_ver 
         parsed_msg_hdr['typ'], i = msg_hdr[i:i+self.size_msg_hdr_typ], i+self.size_msg_hdr_typ
-        parsed_msg_hdr['len'] = msg_hdr[i:i+self.size_msg_hdr_len], i + self.size_msg_hdr_len
+        parsed_msg_hdr['len'], i = msg_hdr[i:i+self.size_msg_hdr_len], i+self.size_msg_hdr_len
 
         # SQN 
         parsed_msg_hdr['sqn'], i = msg_hdr[i:i+self.size_msg_hdr_sqn], i+self.size_msg_hdr_sqn
@@ -88,7 +88,7 @@ class SiFT_MTP:
         parsed_msg_hdr['rnd'], i = msg_hdr[i:i+self.size_msg_hdr_rnd], i+self.size_msg_hdr_rnd
 
         # RSV
-        parsed_msg_hdr['rsv'] = msg_hdr[i:i+self.size_msg_hdr_rsv]
+        parsed_msg_hdr['rsv'], i = msg_hdr[i:i+self.size_msg_hdr_rsv], i+self.size_msg_hdr_rsv
 
         return parsed_msg_hdr
 
@@ -135,6 +135,8 @@ class SiFT_MTP:
         # Type is login request from client
         if parsed_msg_hdr['typ'] == self.type_login_req:
             # Get Length of the message body (Excluding the header)
+            print(type(parsed_msg_hdr['len']), parsed_msg_hdr['len'])
+            
             full_len = int.from_bytes(parsed_msg_hdr['len'], byteorder='big')
 
             # Get encrypted payload and mac
