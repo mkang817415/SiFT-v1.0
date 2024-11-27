@@ -1,12 +1,10 @@
 #python3
 
 import time
-from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Hash import SHA256
-from Crypto.PublicKey import RSA
 from Crypto.Protocol.KDF import PBKDF2
-from Crypto.Random import get_random_bytes
 from siftprotocols.siftmtp import SiFT_MTP, SiFT_MTP_Error
+<<<<<<< HEAD:SiFTv1.0/server/siftprotocols/siftlogin.py
 from base64 import b64encode, b64decode
 from Crypto import Random
 from Crypto.Protocol.KDF import PBKDF2, HKDF
@@ -14,6 +12,8 @@ from Crypto.Protocol.KDF import PBKDF2, HKDF
 
 
 import os
+=======
+>>>>>>> 8e4a8ede2e4aafcb0ef81cdf77fae622ec40f034:SiFTv0.5/server/siftprotocols/siftlogin.py
 
 
 class SiFT_LOGIN_Error(Exception):
@@ -31,12 +31,17 @@ class SiFT_LOGIN:
         # --------- STATE ------------
         self.mtp = mtp
         self.server_users = None 
+<<<<<<< HEAD:SiFTv1.0/server/siftprotocols/siftlogin.py
         
         self.client_random = None
         self.server_random = None
         self.final_transfer_key = None
     
     
+=======
+
+
+>>>>>>> 8e4a8ede2e4aafcb0ef81cdf77fae622ec40f034:SiFTv0.5/server/siftprotocols/siftlogin.py
     # sets user passwords dictionary (to be used by the server)
     def set_server_users(self, users):
         self.server_users = users
@@ -105,6 +110,7 @@ class SiFT_LOGIN:
 
         if msg_type != self.mtp.type_login_req:
             raise SiFT_LOGIN_Error('Login request expected, but received something else')
+<<<<<<< HEAD:SiFTv1.0/server/siftprotocols/siftlogin.py
         
         login_req_struct = self.parse_login_req(msg_payload)
         
@@ -113,6 +119,15 @@ class SiFT_LOGIN:
         if login_req_struct['timestamp'] < (current_time_ns - 1000000000) or login_req_struct['timestamp'] > (current_time_ns + 1000000000):
             raise SiFT_LOGIN_Error('Timestamp verification failed')
 
+=======
+
+        # processing login request
+        hash_fn = SHA256.new()
+        hash_fn.update(msg_payload)
+        request_hash = hash_fn.digest()
+
+        login_req_struct = self.parse_login_req(msg_payload)
+>>>>>>> 8e4a8ede2e4aafcb0ef81cdf77fae622ec40f034:SiFTv0.5/server/siftprotocols/siftlogin.py
 
         # checking username and password
         if login_req_struct['username'] in self.server_users:
@@ -158,7 +173,10 @@ class SiFT_LOGIN:
         login_req_struct['timestamp'] = time.time_ns()
         login_req_struct['username'] = username
         login_req_struct['password'] = password
+<<<<<<< HEAD:SiFTv1.0/server/siftprotocols/siftlogin.py
         login_req_struct['client_random'] = Random.get_random_bytes(16).hex()
+=======
+>>>>>>> 8e4a8ede2e4aafcb0ef81cdf77fae622ec40f034:SiFTv0.5/server/siftprotocols/siftlogin.py
         msg_payload = self.build_login_req(login_req_struct)
 
 
