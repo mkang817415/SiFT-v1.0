@@ -199,7 +199,7 @@ class SiFT_LOGIN:
             raise SiFT_LOGIN_Error('Client and/or server random not set')
         
         # Derive the final transfer key
-        initial_key = client_random + server_random
+        initial_key = bytes.fromhex(client_random) + server_random
         final_transfer_key = HKDF(
             master = initial_key,
             key_len=32, 

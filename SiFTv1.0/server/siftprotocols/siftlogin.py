@@ -135,7 +135,8 @@ class SiFT_LOGIN:
         login_res_struct['server_random'] = Random.get_random_bytes(16).hex()
         msg_payload = self.build_login_res(login_res_struct)
 
-        # sending login response
+    
+        
         try:
             self.mtp.send_msg(self.mtp.type_login_res, msg_payload)
         except SiFT_MTP_Error as e:
@@ -200,8 +201,8 @@ class SiFT_LOGIN:
         if client_random is None or server_random is None:
             raise SiFT_LOGIN_Error('Client and/or server random not set')
         
-        # Derive the final transfer key
-        initial_key = client_random + server_random
+
+        initial_key = client_random + bytes.fromhex(server_random)
         final_transfer_key = HKDF(
             master = initial_key,
             key_len=32, 

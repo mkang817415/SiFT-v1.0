@@ -135,7 +135,6 @@ class SiFT_MTP:
         # Type is login request from client
         if parsed_msg_hdr['typ'] == self.type_login_req:
             # Get Length of the message body (Excluding the header)
-            print(type(parsed_msg_hdr['len']), parsed_msg_hdr['len'])
             
             full_len = int.from_bytes(parsed_msg_hdr['len'], byteorder='big')
 
@@ -151,9 +150,6 @@ class SiFT_MTP:
             if len(msg_body) != full_len - self.size_msg_hdr: 
                 raise SiFT_MTP_Error('Incomplete message body reveived')
 
-
-            # Decrypting temporary key with RSA
-            #### PROBLEMEMMEMEMEEME
             try:
                 RSAcipher = PKCS1_OAEP.new(self.keypair)
                 self.tk = RSAcipher.decrypt(etk)
@@ -164,21 +160,6 @@ class SiFT_MTP:
             nonce = parsed_msg_hdr['sqn'] + parsed_msg_hdr['rnd'] # nonce
             AES_GCM = AES.new(key=self.tk, mode=AES.MODE_GCM, nonce=nonce, mac_len=12) # AES GCM mode
             AES_GCM.update(msg_hdr) # update with encrypted payload
-
-            print('EPD:', epd.hex(), len(epd))
-            print('MAC:', mac.hex(), len(mac))
-            print('ETK:', etk.hex(), len(etk))
-            print("TK:", self.tk.hex(), len(self.tk))
-            print("nonce", nonce.hex(), len(nonce))
-            print("msg_hdr", msg_hdr.hex(), len(msg_hdr))
-            
-            print()
-            print("ver:", parsed_msg_hdr['ver'].hex())
-            print("typ:", parsed_msg_hdr['typ'].hex())
-            print("len:", parsed_msg_hdr['len'])
-            print("sqn:", parsed_msg_hdr['sqn'])
-            print("rnd:", parsed_msg_hdr['rnd'].hex())
-            print("rsv:", parsed_msg_hdr['rsv'].hex())
             
             # Try decrypting and verifying
             try:
@@ -195,7 +176,7 @@ class SiFT_MTP:
             # Get encrypted payload and mac
             try:
                 msg_body = self.receive_bytes(full_len - self.size_msg_hdr)
-                epd = msg_body[:self.size_msg_hdr]
+                epd = msg_body[:-12]
                 mac = msg_body[-12:]
             except SiFT_MTP_Error as e:
                 raise SiFT_MTP_Error('Unable to receive message body --> ' + e.err_msg)
@@ -208,6 +189,7 @@ class SiFT_MTP:
             nonce = parsed_msg_hdr['sqn'] + parsed_msg_hdr['rnd'] # nonce
             AES_GCM = AES.new(self.ftrk, AES.MODE_GCM, nonce=nonce, mac_len=12) 
             AES_GCM.update(msg_hdr) # update with encrypted payload
+
 
             # Try decrypting and verifying
             try:
@@ -242,7 +224,7 @@ class SiFT_MTP:
             AES_GCM = AES.new(self.tk, AES.MODE_GCM, nonce=nonce, mac_len=12)
             AES_GCM.update(msg_hdr)
             epd, mac = AES_GCM.encrypt_and_digest(msg_payload)
-
+            
             # try to send
             try:
                 whole_msg = msg_hdr + epd + mac
@@ -264,6 +246,7 @@ class SiFT_MTP:
             AES_GCM = AES.new(self.ftrk, AES.MODE_GCM, nonce=nonce, mac_len=12) # Final transfer key
             AES_GCM.update(msg_hdr) # update with encrypted payload
             epd, mac = AES_GCM.encrypt_and_digest(msg_payload)
+
 
             # try to send
             try:

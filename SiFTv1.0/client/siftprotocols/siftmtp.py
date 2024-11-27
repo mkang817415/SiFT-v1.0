@@ -56,7 +56,7 @@ class SiFT_MTP:
         self.last_received_sqn = 0
 
         # Public Key 
-        client_key_path = os.path.join(os.path.dirname(__file__), '../../client/keys/public_key.pem')
+        client_key_path = os.path.join(os.path.dirname(__file__), '../../client/keys/Applied Cryptography Public Key.pem')
         with open(client_key_path, 'rb') as f:
             public_key_string = f.read()
             self.public_key = RSA.import_key(public_key_string)
@@ -147,9 +147,9 @@ class SiFT_MTP:
                 raise SiFT_MTP_Error('Incomplete message body reveived')
 
             nonce = parsed_msg_hdr['sqn'] + parsed_msg_hdr['rnd'] # nonce
-            key = self.transfer_key # AES GCM key
-            AES_GCM = AES.new(key, AES.MODE_GCM, nonce=nonce, mac_len=16) # AES GCM mode
-            AES_GCM.update(epd) # update with encrypted payload
+             # AES GCM key
+            AES_GCM = AES.new(self.tk, AES.MODE_GCM, nonce=nonce, mac_len=12) # AES GCM mode
+            AES_GCM.update(msg_hdr) # update with encrypted payload
 
             # Try decrypting and verifying
             try:
@@ -161,12 +161,13 @@ class SiFT_MTP:
 
             return parsed_msg_hdr['typ'], msg_payload
         else:
+            
             full_len = int.from_bytes(parsed_msg_hdr['len'], byteorder='big')
             
             # Get encrypted payload and mac
             try:
                 msg_body = self.receive_bytes(full_len - self.size_msg_hdr)
-                epd = msg_body[:self.size_msg_hdr]
+                epd = msg_body[:-12]
                 mac = msg_body[-12:]
             except SiFT_MTP_Error as e:
                 raise SiFT_MTP_Error('Unable to receive message body --> ' + e.err_msg)
@@ -176,15 +177,17 @@ class SiFT_MTP:
 
             # Verify mac and decrypt payload with AES in GCM mode using the final transfer key as the key and sqn+rnd as the nonce
             nonce = parsed_msg_hdr['sqn'] + parsed_msg_hdr['rnd'] # nonce
-            key = self.transfer_key # AES GCM key
-            AES_GCM = AES.new(key, AES.MODE_GCM, nonce=nonce, mac_len=16) # AES GCM mode
-            AES_GCM.update(epd) # update with encrypted payload
+            AES_GCM = AES.new(self.ftrk, AES.MODE_GCM, nonce=nonce, mac_len=12) # AES GCM mode
+            AES_GCM.update(msg_hdr) 
+            
+            
+
 
             # Try decrypting and verifying
             try:
                 msg_payload = AES_GCM.decrypt_and_verify(epd, mac)
-            except:
-                raise SiFT_MTP_Error('Unable to decrypt and verify message body')
+            except Exception as e:
+                raise SiFT_MTP_Error('Unable to decrypt and verify message body ' + str(e))
 
             self.last_received_sqn = int.from_bytes(parsed_msg_hdr['sqn'], byteorder='big')
 
@@ -222,23 +225,7 @@ class SiFT_MTP:
             # tk is encrypted using RSA-OAEP with the public key of the server
             RSAcipher = PKCS1_OAEP.new(self.public_key)
             etk = RSAcipher.encrypt(self.tk)
-            
-            print('EPD:', epd.hex(), len(epd))
-            print('MAC:', mac.hex(), len(mac))
-            print('ETK:', etk.hex(), len(etk))
-            print("TK:", self.tk.hex(), len(self.tk))
-            print("nonce", nonce.hex(), len(nonce))
-            print("MSG_HDR:", msg_hdr.hex(), len(msg_hdr))
-
-            print()
-            print("ver:", self.msg_hdr_ver.hex())
-            print("typ:", msg_type.hex())
-            print("len:", msg_hdr_len.hex())
-            print("sqn:", sqn)
-            print("rnd:", rnd.hex())
-            print("rsv:", rsv.hex())
-            
-            # try to send ****** CURRENT ERROR
+        
             try:
                 whole_msg = msg_hdr + epd + mac + etk
                 self.send_bytes(whole_msg)
@@ -247,7 +234,7 @@ class SiFT_MTP:
                 raise SiFT_MTP_Error('Unable to send message to peer --> ' + e.err_msg)
         else: # Message is not login
             # build message
-            msg_size = self.size_msg_hdr + len(msg_payload)
+            msg_size = self.size_msg_hdr + len(msg_payload) + 12
             msg_hdr_len = msg_size.to_bytes(self.size_msg_hdr_len, byteorder='big')
 
             sqn = self.sequence_number.to_bytes(2, byteorder="big") # Big endian byte order
@@ -259,10 +246,11 @@ class SiFT_MTP:
             # nonce
             nonce = sqn + rnd
 
-            AES_GCM = AES.new(self.ftrk, AES.MODE_GCM, nonce=nonce, mac_len=16)
+            AES_GCM = AES.new(self.ftrk, AES.MODE_GCM, nonce=nonce, mac_len=12)
             AES_GCM.update(msg_hdr)
             epd, mac = AES_GCM.encrypt_and_digest(msg_payload) 
             # try to send
+ 
             try:
                 whole_msg = msg_hdr + epd + mac
                 self.send_bytes(whole_msg)
