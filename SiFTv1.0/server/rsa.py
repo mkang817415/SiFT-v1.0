@@ -29,70 +29,9 @@ def keypairGeneratation():
     
     return keypair.publickey(), keypair
 
-
-
-
-#### DO NOT NEED FUNCTIONS BELOW
-
-
-# RSA Encryption
-def RSAEncryption(pubkey, plaintext):
-    cipher = PKCS1_OAEP.new(pubkey)
-    ciphertext = cipher.encrypt(plaintext)
-    return b64encode(ciphertext).decode('ASCII')
-
-def RSADecryption(privkey, ciphertext):
-    cipher = PKCS1_OAEP.new(privkey)
-    try:
-        decrypted_message = cipher.decrypt(b64decode(ciphertext))
-        return decrypted_message.decode('ASCII')
-    except ValueError:
-        print('Invalid ciphertext or key')
-        return None
-    
-# RSA Signature Generation
-def RSASignatureGeneration(privkey, msg):
-    hashFunction = SHA256.new()
-    hashFunction.update(msg)
-    signer = PKCS1_PSS.new(privkey)
-    signature = signer.sign(hashFunction)
-    return signature.hex()
-
-# RSA Signature verification
-def RSASignatureVerification(pubkey, msg, signature):
-    hashFunction = SHA256.new()
-    hashFunction.update(msg)
-    verifier = PKCS1_PSS.new(pubkey)
-    try:
-        verifier.verify(hashFunction, bytes.fromhex(signature))
-        return True
-    except:
-        return False
     
 if __name__ == '__main__':
     pubkey, keypair = keypairGeneratation()
     print("Public Key:", pubkey)
     print("Private Key:", keypair)
     
-    # # Example message 
-    # message = b'Hello this is a test'
-    
-    # # Encryption 
-    # ciphertext = RSAEncryption(pubkey, message)
-    # print("Ciphertext (Base64):", ciphertext)   
-    
-    # # Decryption
-    # plaintext = RSADecryption(keypair, ciphertext)
-    # if plaintext: 
-    #     print("Recovered Plaintext:", plaintext)
-
-    # # Signature Generation
-    # signature = RSASignatureGeneration(keypair, message)
-    # print("Signature (Hex):", signature)
-
-    # # Signature Verification
-    # if RSASignatureVerification(pubkey, message, signature):
-    #     print("Signature is valid")
-    # else:
-    #     print("Signature is invalid")
-
