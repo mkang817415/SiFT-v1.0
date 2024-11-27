@@ -76,7 +76,7 @@ class SiFT_MTP:
         parsed_msg_hdr, i = {}, 0
         parsed_msg_hdr['ver'], i = msg_hdr[i:i+self.size_msg_hdr_ver], i+self.size_msg_hdr_ver 
         parsed_msg_hdr['typ'], i = msg_hdr[i:i+self.size_msg_hdr_typ], i+self.size_msg_hdr_typ
-        parsed_msg_hdr['len'] = msg_hdr[i:i+self.size_msg_hdr_len]
+        parsed_msg_hdr['len'] = msg_hdr[i:i+self.size_msg_hdr_len], i + self.size_msg_hdr_len
 
         # SQN 
         parsed_msg_hdr['sqn'], i = msg_hdr[i:i+self.size_msg_hdr_sqn], i+self.size_msg_hdr_sqn
@@ -215,16 +215,30 @@ class SiFT_MTP:
             nonce = sqn + rnd
 
             #### Encryption
-            AES_GCM = AES.new(key=self.tk, mode=AES.MODE_GCM, nonce=nonce, mac_len=16)
+            AES_GCM = AES.new(key=self.tk, mode=AES.MODE_GCM, nonce=nonce, mac_len=12)
             AES_GCM.update(msg_hdr)
             epd, mac = AES_GCM.encrypt_and_digest(msg_payload) # epd = encrypted payload, mac = authentication tag
 
-			##### #PROBLEMEMEMEMEEM
             # tk is encrypted using RSA-OAEP with the public key of the server
             RSAcipher = PKCS1_OAEP.new(self.public_key)
             etk = RSAcipher.encrypt(self.tk)
+            
+            print('EPD:', epd.hex(), len(epd))
+            print('MAC:', mac.hex(), len(mac))
+            print('ETK:', etk.hex(), len(etk))
+            print("TK:", self.tk.hex(), len(self.tk))
+            print("nonce", nonce.hex(), len(nonce))
+            print("MSG_HDR:", msg_hdr.hex(), len(msg_hdr))
 
-            # try to send
+            print()
+            print("ver:", self.msg_hdr_ver.hex())
+            print("typ:", msg_type.hex())
+            print("len:", msg_hdr_len.hex())
+            print("sqn:", sqn)
+            print("rnd:", rnd.hex())
+            print("rsv:", rsv.hex())
+            
+            # try to send ****** CURRENT ERROR
             try:
                 whole_msg = msg_hdr + epd + mac + etk
                 self.send_bytes(whole_msg)

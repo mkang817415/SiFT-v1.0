@@ -24,6 +24,8 @@ class SiFT_MTP:
         self.version_major = 1
         self.version_minor = 0
         self.msg_hdr_ver = b'\x01\x00'
+        
+        # Header Sizes
         self.size_msg_hdr = 16
         self.size_msg_hdr_ver = 2
         self.size_msg_hdr_typ = 2
@@ -31,6 +33,7 @@ class SiFT_MTP:
         self.size_msg_hdr_sqn = 2
         self.size_msg_hdr_rnd = 6
         self.size_msg_hdr_rsv = 2
+
 
         self.size_msg_etk = 256
 
@@ -76,7 +79,7 @@ class SiFT_MTP:
         parsed_msg_hdr, i = {}, 0
         parsed_msg_hdr['ver'], i = msg_hdr[i:i+self.size_msg_hdr_ver], i+self.size_msg_hdr_ver 
         parsed_msg_hdr['typ'], i = msg_hdr[i:i+self.size_msg_hdr_typ], i+self.size_msg_hdr_typ
-        parsed_msg_hdr['len'] = msg_hdr[i:i+self.size_msg_hdr_len]
+        parsed_msg_hdr['len'] = msg_hdr[i:i+self.size_msg_hdr_len], i + self.size_msg_hdr_len
 
         # SQN 
         parsed_msg_hdr['sqn'], i = msg_hdr[i:i+self.size_msg_hdr_sqn], i+self.size_msg_hdr_sqn
@@ -152,14 +155,29 @@ class SiFT_MTP:
             try:
                 RSAcipher = PKCS1_OAEP.new(self.keypair)
                 self.tk = RSAcipher.decrypt(etk)
-            except:
-                raise SiFT_MTP_Error('Unable to decrypt transfer key') 
+            except Exception as e:
+                raise SiFT_MTP_Error('Unable to decrypt transfer key' + " " + str(e)) 
 
             # Verify mac and decrypt payload with AES in GCM mode using the final transfer key as the key and sqn+rnd as the nonce
             nonce = parsed_msg_hdr['sqn'] + parsed_msg_hdr['rnd'] # nonce
             AES_GCM = AES.new(key=self.tk, mode=AES.MODE_GCM, nonce=nonce, mac_len=12) # AES GCM mode
             AES_GCM.update(msg_hdr) # update with encrypted payload
 
+            print('EPD:', epd.hex(), len(epd))
+            print('MAC:', mac.hex(), len(mac))
+            print('ETK:', etk.hex(), len(etk))
+            print("TK:", self.tk.hex(), len(self.tk))
+            print("nonce", nonce.hex(), len(nonce))
+            print("msg_hdr", msg_hdr.hex(), len(msg_hdr))
+            
+            print()
+            print("ver:", parsed_msg_hdr['ver'].hex())
+            print("typ:", parsed_msg_hdr['typ'].hex())
+            print("len:", parsed_msg_hdr['len'])
+            print("sqn:", parsed_msg_hdr['sqn'])
+            print("rnd:", parsed_msg_hdr['rnd'].hex())
+            print("rsv:", parsed_msg_hdr['rsv'].hex())
+            
             # Try decrypting and verifying
             try:
                 msg_payload = AES_GCM.decrypt_and_verify(epd, mac)
