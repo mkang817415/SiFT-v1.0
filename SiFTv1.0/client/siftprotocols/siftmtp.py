@@ -179,9 +179,6 @@ class SiFT_MTP:
             nonce = parsed_msg_hdr['sqn'] + parsed_msg_hdr['rnd'] # nonce
             AES_GCM = AES.new(self.ftrk, AES.MODE_GCM, nonce=nonce, mac_len=12) # AES GCM mode
             AES_GCM.update(msg_hdr) 
-            
-            
-
 
             # Try decrypting and verifying
             try:

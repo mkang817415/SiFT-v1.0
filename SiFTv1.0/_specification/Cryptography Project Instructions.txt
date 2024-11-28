@@ -36,20 +36,3 @@ The goal of the project assignment is to implement the SiFT v1.0 specification. 
 You will need to generate an RSA key-pair for the server. For this, you can write a standalone utility program based on what you did in the corresponding exercise session. You should export and save the public key and the key-pair in different files (e.g., in PEM format), and put the key-pair file in the server folder and the public key file in the client folder. So your server and client programs can read these keys from those files and pass them to the login protocol that will use them for the session key establishment. Essentially, this is the only new thing you have to implement in server.py and client.py, and the bulk of the work will be in mtp.py and login.py.
 
 If you have questions, please, do not hesitate to ask them!
-
-
-
-
-Primary files to work on server, client, mtp, login
-
-Requirements: 
-1. Login Protocol with Session key establishment (key exchange and key derivation) 
-2. Extending the message transfer protocol with cryptographic functions and relay protection. 
-*Only need to modify login.py, mtp.py, server.py and client.py
-
-Steps to take:
-1. Generate an RSA key-pair for the server
-- Move public key to client folder
-- Move key-pair to server folder
-2. Implement the login protocol that uses the keys for session key establishment
-

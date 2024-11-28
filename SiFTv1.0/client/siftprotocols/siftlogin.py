@@ -1,21 +1,16 @@
 #python3
 
-import time
+from base64 import b64encode, b64decode
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
-from siftprotocols.siftmtp import SiFT_MTP, SiFT_MTP_Error
 from Crypto import Random
-from base64 import b64encode, b64decode
 from Crypto.Protocol.KDF import PBKDF2, HKDF
-
-
 import os
-
-
-
+from siftprotocols.siftmtp import SiFT_MTP, SiFT_MTP_Error
+import time
 
 class SiFT_LOGIN_Error(Exception):
 
@@ -37,9 +32,6 @@ class SiFT_LOGIN:
         self.client_random = None
         self.server_random = None
         self.final_transfer_key = None
-        
-        
-
 
     # sets user passwords dictionary (to be used by the server)
     def set_server_users(self, users):
@@ -199,7 +191,10 @@ class SiFT_LOGIN:
             raise SiFT_LOGIN_Error('Client and/or server random not set')
         
         # Derive the final transfer key
-        initial_key = bytes.fromhex(client_random) + server_random
+        client_random = bytes.fromhex(client_random) if isinstance(client_random, str) else client_random
+        server_random = bytes.fromhex(server_random) if isinstance(server_random, str) else server_random
+        
+        initial_key = client_random + server_random      
         final_transfer_key = HKDF(
             master = initial_key,
             key_len=32, 

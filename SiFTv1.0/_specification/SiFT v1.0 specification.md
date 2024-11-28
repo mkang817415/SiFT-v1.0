@@ -1,9 +1,3 @@
-
-***** THE ONLY OTHER THING IS - maybe implement reading public/private keys in client.py / server.py instead of the MTP.py files???!!??!
-
-
-
-
 # Simple File Transfer v1.0
 This document specifies version 1.0 of the Simple File Transfer (SiFT) protocol. SiFT can be used by a client to send file commands to a server, which executes those commands. SiFT supports the following 7 commands:
 
@@ -17,9 +11,7 @@ This document specifies version 1.0 of the Simple File Transfer (SiFT) protocol.
 
 SiFT allows the client and the server to communicate via a network and execute the above commands remotely. It assumes that the client and the server uses the TCP/IP protocol to establish a connection and to send data reliably to each other. By reliability, we mean that the bytes sent by a party arrive to the other party, and they arrive in the order that they were sent. The SiFT v1.0 server must listen and accept client connection requests on TCP port 5150.
 
-On the other hand, unlike earlier versions, SiFT v1.0 does not assume that the network is secure, which means that an attacker may eavesdrop, modify, delete, and replay messages sent by the parties, and the attacker may also inject new messages. SiFT provides protection against these misdeeds by using a cryptographically secured message transfer sub-protocol. This sub-protocol uses symmetric key cryptographic primitives, and hence, needs shared secret keys. 
-
-SiFT uses a login sub-protocol to establish the needed secret keys and to authenticate the client and the server to each other. In the sequel, we specify these (and other) sub-protocols of SiFT v1.0.
+On the other hand, unlike earlier versions, SiFT v1.0 does not assume that the network is secure, which means that an attacker may eavesdrop, modify, delete, and replay messages sent by the parties, and the attacker may also inject new messages. SiFT provides protection against these misdeeds by using a cryptographically secured message transfer sub-protocol. This sub-protocol uses symmetric key cryptographic primitives, and hence, needs shared secret keys. SiFT uses a login sub-protocol to establish the needed secret keys and to authenticate the client and the server to each other. In the sequel, we specify these (and other) sub-protocols of SiFT v1.0.
 
 ## Overview of sub-protocols
 SiFT v1.0 has the following sub-protocols: Message Transfer Protocol (MTP), Login Protocol, Commands Protocol, Upload Protocol, and Download Protocol. The following figure shows how these sub-protocols are related to each other: 
@@ -91,8 +83,6 @@ The values for the message types are defined according to the following concept:
 
 The header is followed by the AES-GCM enrcrypted payload (__epd__) and the AES-GCM authentication tag (__mac__). The mac field in this version of the protocol must be 12 bytes long. 
 
-
-### Login Request -> delete this line 
 In case of login requests (i.e., message type `00 00`), the message format is somewhat different, and it is shown below:
 
 ```
@@ -130,24 +120,9 @@ When a TCP connection is established by the client to the server (serving client
 - rnd = r (i.e., the 6-byte fresh random value generated before)
 - rsv = `00 00`
 
-It then encrypts the payload of the login request and produces an  authentication tag on the message header and the 
+It then encrypts the payload of the login request and produces an  authentication tag on the message header and the encrypted payload using AES in GCM mode with tk as the key and sqn+rnd as the nonce (here + means concatenation of byte strings). In this way the epd and mac fields are produced. Finally, the client encrypts tk using RSA-OAEP with the RSA public key of the server to produce the etk field.
 
-- encrypted payload using AES in GCM mode with tk as the key and sqn+rnd as the nonce (here + means concatenation of byte strings). In this way the epd and mac fields are produced. Finally, the client encrypts tk using RSA-OAEP with the RSA public key of the server to produce the etk field.
-
-When the server recieves the login request message, it checks the sequence number sqn in the header. 
-
-- Then it takes the last 256 bytes of the message as etk and decrypts it using RSA-OAEP with its RSA private key to obtain the temporary key tk.
-
-
-- Once tk is obtained, it can verify the mac and decrypt the epd field using AES in GCM mode with tk as the key and sqn+rnd as the nonce (obtained from the message header).  
-
-- The decrypted payload of the login request contains data that allows the authentication of the client to the server (see the description of the Login Protocol later).
-
-
-
-
-
-**** COME BACK TO THIS LATER ****
+When the server recieves the login request message, it checks the sequence number sqn in the header. Then it takes the last 256 bytes of the message as etk and decrypts it using RSA-OAEP with its RSA private key to obtain the temporary key tk. Once tk is obtained, it can verify the mac and decrypt the epd field using AES in GCM mode with tk as the key and sqn+rnd as the nonce (obtained from the message header).  The decrypted payload of the login request contains data that allows the authentication of the client to the server (see the description of the Login Protocol later).
 
 The server must respond with a login response (type `00 10`) message. For building the MTP message that carries the login response, it generates a fresh 6-byte random value r' using a cryptographic random number generator. It fills in the message header fields as follows:
 - ver = `01 00`
@@ -159,44 +134,22 @@ The server must respond with a login response (type `00 10`) message. For buildi
 
 It then encrypts the payload of the login response and produces an  authentication tag on the message header and the encrypted payload using AES in GCM mode with tk as the key and sqn+rnd as the nonce. In this way the epd and mac fields are produced, and the login response is sent to the client.
 
-*******
-The client and the server also send random values client_random and server_random, respectively, in the payload of the login request and login response messages, and they use these random numbers to create the final transfer key that they will use in the rest of the session. This will be described in the specification of the Login Protocol later. 
+The client and the server also send random values client_random and server_random, respectively, in the payload of the login request and login response messages, and they use these random numbers to create the final transfer key that they will use in the rest of the session. This will be described in the specification of the Login Protocol later. Hence, after the exchange of the login messages, if the login was successful, then the temporary key used to protect the login messages is discarded, and both the client and the server set the transfer key to the value derived from client_random and server_random. All subsequent messages will be protected with this final transfer key. The sequence numbers are not reset. 
 
-Hence, after the exchange of the login messages, if the login was successful, then the temporary key used to protect the login messages is discarded, and 
-
--both the client and the server set the transfer key to the value derived from client_random and server_random. All subsequent messages will be protected with this final transfer key. The sequence numbers are not reset. 
-*******
-
-
-<!-- 
 All subsequent MTP messages are produced in the same way as described above for the case of the login response message: 
 - the message header is produced with the appropriate message type (depending on the payload to be sent), the appropriate length, the next sending sequence number, and a fresh 6-byte random value, 
 - the encrypted payload and the mac fields are produced by processing the message header and the payload with AES in GCM mode using the final transfer key as the key and sqn+rnd as the nonce,
 - the message is sent and the inceremented sending sequence number is stored (as the sequence number of the last message sent).
- -->
 
-
-<!-- When such an MTP message is received, the receiving party 
+When such an MTP message is received, the receiving party 
 - verifies if the sequence number sqn in the message is larger than the last received sequence number, 
 - verifies the mac and decrypts the encrypted payload with AES in GCM mode using the final transfer key as the key and sqn+rnd as the nonce, and
 - if all verifications are successful, the stored receiving sequence number is set to the sqn value received in the message header.
 
-A message that does not pass all verifications must be silently discarded (no error message is sent in the MTP protocol) and the connection between the client and the server must be closed. Closing the connection is initiated by the receiving party that encountered the offending message. -->
+A message that does not pass all verifications must be silently discarded (no error message is sent in the MTP protocol) and the connection between the client and the server must be closed. Closing the connection is initiated by the receiving party that encountered the offending message.
 
-
-
-*************** NOV 13 WEDNESDAY NIGHT PROGRESS ****************
 ## SiFT v1.0 Login Protocol
-The SiFT v1.0 Login Protocol is responsible for authenticating the client and the server to each other and for setting up the final transfer key to be used by the MTP protocol to protect MTP messages. The server is authenticated implictly: 
-
-1. it is assumed that the client knows the server's public key, and it encrypts a login request to the server using this public key. 
-
-- Hence, only the entity knowing the corresponding private key, i.e., supposedly the server, can decrypt and respond correctly to this login request. 
-
-2. The client, on the other hand, authenticates itself explicitely with a username and password pair, which is sent to the server in the login request message. 
-
-3. The server should not store client passwords in cleartext, but it should rather store password hashes, and verify the password in the incoming login request by hashing it and comparing it to the stored password hash of the user identified by the username in the login request. 
-- In addition, to prevent dictionary attacks on passwords, the server should use a secure password hashing algorithm, such as PBKDF2, scrypt, or Argon2.
+The SiFT v1.0 Login Protocol is responsible for authenticating the client and the server to each other and for setting up the final transfer key to be used by the MTP protocol to protect MTP messages. The server is authenticated implictly: it is assumed that the client knows the server's public key, and it encrypts a login request to the server using this public key. Hence, only the entity knowing the corresponding private key, i.e., supposedly the server, can decrypt and respond correctly to this login request. The client, on the other hand, authenticates itself explicitely with a username and password pair, which is sent to the server in the login request message. The server should not store client passwords in cleartext, but it should rather store password hashes, and verify the password in the incoming login request by hashing it and comparing it to the stored password hash of the user identified by the username in the login request. In addition, to prevent dictionary attacks on passwords, the server should use a secure password hashing algorithm, such as PBKDF2, scrypt, or Argon2.
 
 ### Message exchange
 The message exchange of the Login Protocol is shown in the figure below:
@@ -207,9 +160,7 @@ sequenceDiagram
     server->>client: login_res
 ```
 
-The Login Protocol consists of 2 message transfers. First, the client must send a login request (login_req) to the server, and after that, the server must send a login response (login_res) to the client. 
-
-If the server receives another type of message when it expects a login request, or the client receives another type of message when it expects a login response, then the connection between the client and the server must be closed. Closing the connection is initiated by the receiving party that encountered the offending message.
+The Login Protocol consists of 2 message transfers. First, the client must send a login request (login_req) to the server, and after that, the server must send a login response (login_res) to the client. If the server receives another type of message when it expects a login request, or the client receives another type of message when it expects a login response, then the connection between the client and the server must be closed. Closing the connection is initiated by the receiving party that encountered the offending message.
 
 The Login Protocol  messages must be carried by the MTP protocol. MTP handles login requests and responses in a special way, as this was described earlier. 
 
@@ -248,49 +199,20 @@ where
 - `<request_hash>` is a hexadecimal number converted to a string, the value of which is the SHA-256 hash of the payload of the login request message converted to a byte string.
 - `<server_random>` is a hexadecimal number converted to a string, the value of which is a 16-byte freshly generated random value.
 
-
 ### Processing
-<!-- The client should input the username and the password from the user to fill in the `<username>` and `<password>` fields of the login request, and the client must generate a 16-byte fresh random value using a cryptographic random number generator to fill in the `<client_random>` field. Then the client should obtain its current system time of the appropriate format to fill in the `<timestamp>` field, preferably right before sending out the login request message. The login request is then handed over to the MTP protocol entity of the client in order to send it to the server. -->
+The client should input the username and the password from the user to fill in the `<username>` and `<password>` fields of the login request, and the client must generate a 16-byte fresh random value using a cryptographic random number generator to fill in the `<client_random>` field. Then the client should obtain its current system time of the appropriate format to fill in the `<timestamp>` field, preferably right before sending out the login request message. The login request is then handed over to the MTP protocol entity of the client in order to send it to the server.
 
-***
 Once the login request is sent, the client should compute the SHA-256 hash of the payload of the login request (converted to a byte string) and store it for the purpose of later verifications.
-***
 
-<!-- When the server receives the login request message, it should check the received timestamp by comparing it to its current system time. 
+When the server receives the login request message, it should check the received timestamp by comparing it to its current system time. The timestamp must fall in an acceptance window around the current time of the server for the login request to be accepted. The size of the acceptance window should be configurable to account for network delays. A recommended value is 2 seconds, which means that the received timestamp must not be considered fresh by the server if it is smaller than the current time minus 1 second or larger than the current time plus 1 second. Preferably, the server should also check if the same request was not recieved in another connection (with another client) within the acceptance time window around the current time at the server.
 
-The timestamp must fall in an acceptance window around the current time of the server for the login request to be accepted. 
+Then the server must check the username and password received, by computing the password hash of the password and comparing it to the password hash stored by the server for the given username. It is not part of this specification to define which password hash function the server should use and how; this is left for implementations. It is recommended, however, to follow best practices in this matter, which means that a secure password hash function, such as PBKDF2, scrypt, or Argon2, should be used with appropriate streching and salting parameters.
 
-The size of the acceptance window should be configurable to account for network delays. A recommended value is 2 seconds, which means that the received timestamp must not be considered fresh by the server if it is smaller than the current time minus 1 second or larger than the current time plus 1 second.  -->
+If the verification of timestamp or the verification of the username and password fails, then the server must not respond to the client, but it must close the connection. Otherwise, if all verifications succeed, then the server must compute the SHA-256 hash of the payload of the received login request (converted to a byte string) to fill in the `<request-hash>` field of the login response and it must generate a 16-byte fresh random value using a cryptographic random number generator to fill in the `<server_random>` field of the login response. The login response is then handed over to the MTP protocol entity of the server in order to send it to the client.
 
-**** HOW THE FUCK AM I SUPPOSED TO DO THIS WTF
-Preferably, the server should also check if the same request was not recieved in another connection (with another client) within the acceptance time window around the current time at the server.
-****
+When receiving the login response, the client must verify that the request hash in the response matches the previously computed SHA-256 hash value of the payload of the login request sent to the server. If verification fails, the client must terminate the connection.
 
-<!-- Then the server must check the username and password received, by computing the password hash of the password and comparing it to the password hash stored by the server for the given username. 
-
-It is not part of this specification to define which password hash function the server should use and how; this is left for implementations. It is recommended, however, to follow best practices in this matter, which means that a secure password hash function, such as PBKDF2, scrypt, or Argon2, should be used with appropriate streching and salting parameters. -->
-
-<!-- 
-******* GOTTA DO ****
-If the verification of timestamp or the verification of the username and password fails, then the server must not respond to the client, but it must close the connection.  -->
-
-<!-- 
-Otherwise, if all verifications succeed, then the server must compute the SHA-256 hash of the payload of the received login request (converted to a byte string) to fill in the `<request-hash>` field of the login response and it must generate a 16-byte fresh random value using a cryptographic random number generator to fill in the `<server_random>` field of the login response. The login response is then handed over to the MTP protocol entity of the server in order to send it to the client. -->
-<!-- 
-When receiving the login response, the client must verify that the request hash in the response matches the previously computed SHA-256 hash value of the payload of the login request sent to the server. If verification fails, the client must terminate the connection. -->
-
-<!-- ****** NEED TO WORK ON***  -->
-
-<!-- If all verifications were successful, then both the client and the server compute a 32-byte final transfer key for the MTP protocol from the concatenation of the client_random and the server_random as initial key material, 
-
-
-and the request_hash as salt using the HKDF key derivation function with SHA-256 as the internal hash function. 
-
-
-The derived final transfer key is passed to the MTP protocol entity such that all subsequent MTP messages must be protected by this key. -->
-
-
-
+If all verifications were successful, then both the client and the server compute a 32-byte final transfer key for the MTP protocol from the concatenation of the client_random and the server_random as initial key material, and the request_hash as salt using the HKDF key derivation function with SHA-256 as the internal hash function. The derived final transfer key is passed to the MTP protocol entity such that all subsequent MTP messages must be protected by this key.
 
 ## SiFT v1.0 Commands Protocol
 The SiFT v1.0 Commands Protocol is responsible for sending the file commands of the client to the server and sending response messages to these commands. The Commands Protocol must only be used after successful login by the client to the server, and establishment of the final MTP transfer key, such that commands and their responses are protected cryptographically by MTP.

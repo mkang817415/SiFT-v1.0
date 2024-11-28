@@ -10,9 +10,11 @@ from siftprotocols.siftdnl import SiFT_DNL, SiFT_DNL_Error
 
 # ----------- CONFIG -------------
 # server_ip = '127.0.0.1' # localhost
-server_ip = '192.168.20.11'
 # server_ip = '192.168.x.y'
 # server_port = 5150
+
+### In class testing
+server_ip = '192.168.20.11'
 server_port = 5101
 # --------------------------------
 

@@ -1,11 +1,9 @@
+from base64 import b64encode, b64decode
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
-from base64 import b64encode, b64decode
 from Crypto.Signature import PKCS1_PSS
 from Crypto.Hash import SHA256
-
 import os
-
 
 # RSA Key Generation
 def keypairGeneratation():
