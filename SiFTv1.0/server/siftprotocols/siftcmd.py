@@ -92,6 +92,7 @@ class SiFT_CMD:
 
         cmd_req_struct = {}
         cmd_req_struct['command'] = cmd_req_fields[0]
+        
 
         if cmd_req_struct['command'] == self.cmd_chd:
             cmd_req_struct['param_1'] = cmd_req_fields[1]
@@ -229,6 +230,7 @@ class SiFT_CMD:
 
         # processing command request
         try:
+            print(msg_payload)
             cmd_req_struct = self.parse_command_req(msg_payload)
         except:
             raise SiFT_CMD_Error('Parsing command request failed')

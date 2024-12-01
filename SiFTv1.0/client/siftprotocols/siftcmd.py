@@ -275,6 +275,7 @@ class SiFT_CMD:
 
         # building a command request
         msg_payload = self.build_command_req(cmd_req_struct)
+        print(msg_payload)
 
         # DEBUG 
         if self.DEBUG:

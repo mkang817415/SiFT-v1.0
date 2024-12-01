@@ -1,0 +1,7 @@
+client/keys/
+server/keys/
+
+*.pem
+*.DS_Store
+
+*__pycache__/
