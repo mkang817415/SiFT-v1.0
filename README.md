@@ -178,9 +178,10 @@ After a successful login, type help to view available commands:
    
 ## Authors
 
-- **Your Name** - *Collaborator* - [mkang817415](https://github.com/mkang817415)
+- **Mingi Kang** - *Collaborator* - [mkang817415](https://github.com/mkang817415)
 - **David Rhoades** - *Collaborator* - [David-Rhoadess](https://github.com/David-Rhoadess)
 - **Vagmin Viswanathan** - *Collaborator* - [vagminv](https://github.com/vagminv)
+- **Dr. Levente Buttyán** - *Instructor*
 
 ## License
 
