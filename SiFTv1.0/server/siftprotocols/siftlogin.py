@@ -93,7 +93,6 @@ class SiFT_LOGIN:
             raise SiFT_LOGIN_Error('User database is required for handling login at server')
 
         # trying to receive a login request
-        ######## PFOBLEMEMEMEME
         try:
             msg_type, msg_payload = self.mtp.receive_msg()
         except SiFT_MTP_Error as e:
