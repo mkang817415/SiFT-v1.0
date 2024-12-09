@@ -20,7 +20,7 @@ class SiFT_LOGIN_Error(Exception):
 class SiFT_LOGIN:
     def __init__(self, mtp):
 
-        self.DEBUG = True
+        self.DEBUG = False
         # --------- CONSTANTS ------------
         self.delimiter = '\n'
         self.coding = 'utf-8'

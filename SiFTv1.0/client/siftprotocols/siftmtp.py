@@ -15,7 +15,7 @@ class SiFT_MTP_Error(Exception):
 
 class SiFT_MTP:
     def __init__(self, peer_socket):
-        self.DEBUG = True
+        self.DEBUG = False
 
         # --------- CONSTANTS ------------
         self.version_major = 1
@@ -52,11 +52,11 @@ class SiFT_MTP:
 
         # Sequence Number
         self.sequence_number = 1
-
         self.last_received_sqn = 0
 
         # Public Key 
-        client_key_path = os.path.join(os.path.dirname(__file__), '../../client/keys/Applied Cryptography Public Key.pem')
+
+        client_key_path = os.path.join(os.path.dirname(__file__), '../../client/keys/public_key.pem')
         with open(client_key_path, 'rb') as f:
             public_key_string = f.read()
             self.public_key = RSA.import_key(public_key_string)

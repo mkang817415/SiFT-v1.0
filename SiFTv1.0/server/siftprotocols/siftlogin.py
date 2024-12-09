@@ -21,7 +21,7 @@ class SiFT_LOGIN_Error(Exception):
 class SiFT_LOGIN:
     def __init__(self, mtp):
 
-        self.DEBUG = True
+        self.DEBUG = False
         # --------- CONSTANTS ------------
         self.delimiter = '\n'
         self.coding = 'utf-8'
@@ -130,8 +130,6 @@ class SiFT_LOGIN:
         login_res_struct['request_hash'] = request_hash
         login_res_struct['server_random'] = Random.get_random_bytes(16).hex()
         msg_payload = self.build_login_res(login_res_struct)
-
-    
         
         try:
             self.mtp.send_msg(self.mtp.type_login_res, msg_payload)
