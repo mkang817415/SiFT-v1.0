@@ -20,7 +20,7 @@ class SiFT_LOGIN_Error(Exception):
 class SiFT_LOGIN:
     def __init__(self, mtp):
 
-        self.DEBUG = True
+        self.DEBUG = False
         # --------- CONSTANTS ------------
         self.delimiter = '\n'
         self.coding = 'utf-8'
@@ -85,7 +85,6 @@ class SiFT_LOGIN:
         if not self.server_users:
             raise SiFT_LOGIN_Error('User database is required for handling login at server')
 
-        ####### PFOBLDMDMEMMDMEMEMEMME
         # trying to receive a login request
         try:
             msg_type, msg_payload = self.mtp.receive_msg()

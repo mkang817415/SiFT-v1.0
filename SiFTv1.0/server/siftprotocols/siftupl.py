@@ -11,7 +11,7 @@ class SiFT_UPL_Error(Exception):
 class SiFT_UPL:
     def __init__(self, mtp):
 
-        self.DEBUG = True
+        self.DEBUG = False
         # --------- CONSTANTS ------------
         self.delimiter = '\n'
         self.coding = 'utf-8'

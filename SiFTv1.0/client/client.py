@@ -9,13 +9,13 @@ from siftprotocols.siftupl import SiFT_UPL, SiFT_UPL_Error
 from siftprotocols.siftdnl import SiFT_DNL, SiFT_DNL_Error
 
 # ----------- CONFIG -------------
-# server_ip = '127.0.0.1' # localhost
+server_ip = '127.0.0.1' # localhost
 # server_ip = '192.168.x.y'
-# server_port = 5150
+server_port = 5150
 
 ### In class testing
-server_ip = '192.168.20.11'
-server_port = 5101
+# server_ip = '192.168.20.11'
+# server_port = 5101
 # --------------------------------
 
 class SiFTShell(cmd.Cmd):
@@ -39,7 +39,7 @@ class SiFTShell(cmd.Cmd):
             if cmd_res_struct['result_1'] == cmdp.res_failure:
                 print('Remote_Error: ' + cmd_res_struct['result_2'])
             else:
-                print(cmd_res_struct['result_2'])
+                print(cmd_res_struct['result_2']) 
 
     def do_ls(self, arg):
         'List content of the current working directory on the server: ls'
